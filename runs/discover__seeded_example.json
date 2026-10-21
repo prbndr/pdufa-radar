@@ -1,0 +1,132 @@
+{
+  "seeded_example": true,
+  "seconds": null,
+  "cost": null,
+  "grounding": [],
+  "output": {
+    "catalysts": [
+      {
+        "drug": "Mitapivat (Pyrukynd)",
+        "company": "Agios",
+        "ticker": "AGIO",
+        "indication": "Sickle cell disease",
+        "pdufa_date": "2026-11-01",
+        "application": "sNDA"
+      },
+      {
+        "drug": "Aficamten",
+        "company": "Cytokinetics",
+        "ticker": "CYTK",
+        "indication": "Non-obstructive HCM (MAPLE-HCM)",
+        "pdufa_date": "2026-11-14",
+        "application": "sNDA"
+      },
+      {
+        "drug": "IGALMI (at-home)",
+        "company": "BioXcel Therapeutics",
+        "ticker": "BTAI",
+        "indication": "Agitation, bipolar/schizophrenia",
+        "pdufa_date": "2026-11-14",
+        "application": "sNDA"
+      },
+      {
+        "drug": "Ivonescimab + chemo",
+        "company": "Summit Therapeutics",
+        "ticker": "SMMT",
+        "indication": "EGFR-mutant NSCLC post-TKI",
+        "pdufa_date": "2026-11-14",
+        "application": "BLA"
+      },
+      {
+        "drug": "Molgramostim (Molbreevi)",
+        "company": "Savara",
+        "ticker": "SVRA",
+        "indication": "Autoimmune PAP",
+        "pdufa_date": "2026-11-22",
+        "application": "BLA"
+      },
+      {
+        "drug": "Deramiocel",
+        "company": "Capricor Therapeutics",
+        "ticker": "CAPR",
+        "indication": "Duchenne muscular dystrophy",
+        "pdufa_date": "2026-11-22",
+        "application": "BLA resubmission (major amendment)"
+      },
+      {
+        "drug": "BBP-418",
+        "company": "BridgeBio Pharma",
+        "ticker": "BBIO",
+        "indication": "LGMD2I",
+        "pdufa_date": "2026-11-27",
+        "application": "NDA"
+      },
+      {
+        "drug": "Bezuclastinib",
+        "company": "Cogent Biosciences",
+        "ticker": "COGT",
+        "indication": "GIST (with sunitinib)",
+        "pdufa_date": "2026-11-30",
+        "application": "NDA"
+      },
+      {
+        "drug": "Povetacicept",
+        "company": "Vertex",
+        "ticker": "VRTX",
+        "indication": "IgA nephropathy (accelerated)",
+        "pdufa_date": "2026-11-30",
+        "application": "BLA"
+      },
+      {
+        "drug": "Zanzalintinib",
+        "company": "Exelixis",
+        "ticker": "EXEL",
+        "indication": "Previously treated metastatic CRC",
+        "pdufa_date": "2026-12-03",
+        "application": "NDA"
+      },
+      {
+        "drug": "Relacorilant",
+        "company": "Corcept",
+        "ticker": "CORT",
+        "indication": "Cushing's syndrome",
+        "pdufa_date": "2026-12-17",
+        "application": "NDA"
+      },
+      {
+        "drug": "CAM2029",
+        "company": "Camurus",
+        "ticker": "CAMX.ST",
+        "indication": "Acromegaly (resubmission after manufacturing CRL)",
+        "pdufa_date": "2026-12-18",
+        "application": "NDA resubmission"
+      }
+    ]
+  },
+  "results": [
+    {
+      "title": "November 2026 FDA PDUFA Calendar | pdufa.bio",
+      "url": "https://www.pdufa.bio/calendar/2026/november",
+      "date": "2026-10-18",
+      "highlight": "13 PDUFA dates in November 2026, each linked to its primary source."
+    },
+    {
+      "title": "PDUFA Dates December 2026 | CatalystAlert",
+      "url": "https://catalystalert.io/pdufa/december-2026",
+      "date": "2026-10-21",
+      "highlight": "9 FDA decisions fall in December 2026."
+    },
+    {
+      "title": "Vertex announces FDA acceptance of BLA for povetacicept",
+      "url": "https://news.vrtx.com/news-releases/news-release-details/vertex-announces-us-fda-acceptance-biologics-license-application",
+      "date": "2026-06-01",
+      "highlight": "PDUFA target action date of November 30, 2026."
+    },
+    {
+      "title": "Camurus CAM2029 NDA accepted (Pharmacally)",
+      "url": "https://pharmacally.com/camurus-cam2029-fda-accepts-nda-resubmission-acromegaly-december-2026-pdufa/",
+      "date": "2026-07-17",
+      "highlight": "Resubmission follows a June 2026 CRL tied to a cGMP inspection at a third-party manufacturer."
+    }
+  ]
+}

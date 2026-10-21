@@ -1,0 +1,130 @@
+{
+  "seeded_example": true,
+  "seconds": null,
+  "cost": null,
+  "grounding": [],
+  "output": {
+    "summary": "Deramiocel goes into a November 22 decision after a 9-3 advisory committee vote against its cardiomyopathy claim and a major amendment narrowing the ask to upper-limb function. The company says HOPE-3 hit its primary endpoint; FDA reviewers say the statistical plan was changed after unblinding, so the dispute is about evidence quality, not unmet need.",
+    "signals": [
+      {
+        "category": "Advisory committee",
+        "finding": "FDA's cell and gene therapy advisory committee voted 9-3 that the evidence did not support effectiveness for DMD cardiomyopathy.",
+        "direction": "negative",
+        "strength": "high",
+        "date": "2026-07-29"
+      },
+      {
+        "category": "FDA review process",
+        "finding": "FDA briefing document states HOPE-3 missed its pre-specified primary and secondary endpoints and that the statistical analysis plan was revised after unblinding without FDA agreement.",
+        "direction": "negative",
+        "strength": "high",
+        "date": "2026-07-29"
+      },
+      {
+        "category": "FDA review process",
+        "finding": "FDA flagged hypersensitivity reactions in 42% of treated vs 15% of placebo patients, raising functional unblinding concerns.",
+        "direction": "negative",
+        "strength": "medium",
+        "date": "2026-07-29"
+      },
+      {
+        "category": "FDA review process",
+        "finding": "January 2026 resubmission was deemed incomplete (missing clinical study report and statistical plan versions).",
+        "direction": "negative",
+        "strength": "medium",
+        "date": "2026-01-13"
+      },
+      {
+        "category": "Management language",
+        "finding": "Company says HOPE-3 met its primary endpoint (54% slowing of upper-limb decline, p=0.029); this is the company's analysis and conflicts with FDA's reading.",
+        "direction": "neutral",
+        "strength": "low",
+        "date": "2026-08-24"
+      },
+      {
+        "category": "FDA review process",
+        "finding": "CBER accepted a major amendment with 24-month open-label data for a narrower upper-limb indication and extended the goal date to Nov 22, citing significant unmet need.",
+        "direction": "positive",
+        "strength": "low",
+        "date": "2026-08-24"
+      },
+      {
+        "category": "FDA environment",
+        "finding": "Rare pediatric disease with no approved therapy for this use; FDA has shown flexibility in DMD and cited unmet need when accepting the amendment.",
+        "direction": "positive",
+        "strength": "medium",
+        "date": "2026-08-24"
+      },
+      {
+        "category": "Manufacturing / inspection",
+        "finding": "The July 2025 CRL also cited unresolved chemistry, manufacturing and controls items; manufacturing moved from Cedars-Sinai to a San Diego commercial facility.",
+        "direction": "negative",
+        "strength": "low",
+        "date": "2025-07-09"
+      },
+      {
+        "category": "Manufacturing / inspection",
+        "finding": "FDA briefing notes no significant product differences between the two manufacturing sites based on analytical comparability data.",
+        "direction": "positive",
+        "strength": "low",
+        "date": "2026-07-29"
+      }
+    ],
+    "open_questions": [
+      "Will FDA treat the upper-limb analysis as substantial evidence given the post hoc statistical plan changes?",
+      "Is an accelerated or narrower label on the table, and would that require a confirmatory study?",
+      "Are the remaining manufacturing items from the 2025 CRL fully closed?",
+      "How does the stock and options market price the decision versus this lean?"
+    ]
+  },
+  "results": [
+    {
+      "title": "FDA Advisory Committee briefing document, July 29, 2026",
+      "url": "https://www.fda.gov/media/193839/download",
+      "date": "2026-07-29",
+      "highlight": "The study did not meet its pre-specified primary and secondary efficacy endpoints... changes were made to the pre-specified statistical analysis plan."
+    },
+    {
+      "title": "Capricor announces extension of PDUFA target action date",
+      "url": "https://www.capricor.com/investors/news-events/press-releases/detail/354/capricor-therapeutics-announces-extension-of-pdufa-target",
+      "date": "2026-08-24",
+      "highlight": "FDA has classified the submission as a major amendment and extended the PDUFA target action date by three months."
+    },
+    {
+      "title": "FDA extends PDUFA date for Capricor Duchenne therapy",
+      "url": "https://www.cellgenetherapyreview.com/3972-News/627691-FDA-extends-PDUFA-date-for-Capricor-Duchenne-therapy/",
+      "date": "2026-08-24",
+      "highlight": "The advisory committee voted 9-3 that available evidence did not support effectiveness."
+    },
+    {
+      "title": "FDA extends deramiocel review (NeurologyLive)",
+      "url": "https://www.neurologylive.com/view/fda-extends-deramiocel-review-duchenne-muscular-dystrophy-after-hope-3-amend",
+      "date": "2026-08-24",
+      "highlight": "The CRL cited insufficient evidence of effectiveness and unresolved chemistry, manufacturing, and controls elements."
+    },
+    {
+      "title": "FDA extends review of Capricor's Duchenne therapy (RegulatoryNews)",
+      "url": "https://regulatorynews.com/capricor-deramiocel-pdufa-extension",
+      "date": "2026-08-24",
+      "highlight": "HOPE-3 hit its primary endpoint, a 54% slowing of decline on PUL (P=.029), per the company."
+    },
+    {
+      "title": "Capricor regulatory update on deramiocel BLA",
+      "url": "https://www.capricor.com/investors/news-events/press-releases/detail/335/capricor-therapeutics-provides-regulatory-update-on",
+      "date": "2026-01-20",
+      "highlight": "FDA has requested the HOPE-3 clinical study report as part of the BLA review."
+    },
+    {
+      "title": "SEC 8-K exhibit: new PDUFA date of November 22",
+      "url": "https://www.sec.gov/Archives/edgar/data/1133869/000110465926100071/capr-20260824xex99d1.htm",
+      "date": "2026-08-24",
+      "highlight": "Capricor submitted an amendment to the BLA that includes 24-month open-label extension data."
+    },
+    {
+      "title": "PDUFA calendar with registered forecasts (NextConsensus)",
+      "url": "https://nextconsensus.com/pdufa-calendar/",
+      "date": "2026-10-21",
+      "highlight": "Deramiocel, Duchenne: registered probability 35%."
+    }
+  ]
+}

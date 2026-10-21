@@ -37,6 +37,16 @@ CATEGORIES = [
 ]
 STRENGTH = {"low": 0.15, "medium": 0.35, "high": 0.7}
 DIRECTION = {"positive": 1, "negative": -1, "neutral": 0}
+SOURCE_TYPES = ["FDA", "independent", "company"]
+
+RUBRIC = """Grade each signal with this rubric. Regulators decide, so FDA evidence outweighs company claims.
+NEGATIVE high: advisory committee vote against approval or efficacy; FDA briefing document or review finding that endpoints were missed, analyses were post hoc, or the statistical plan changed after unblinding; a refuse-to-file or a Complete Response Letter on this application within the last 12 months for efficacy reasons.
+NEGATIVE medium: major amendment or review extension triggered by efficacy questions; incomplete response; FDA safety concerns in briefing documents; a narrowed or changed proposed indication late in review; unresolved manufacturing or inspection findings (Form 483, warning letter) at the drug's facility.
+NEGATIVE low: older CRL history resolved since; class precedent of rejections; FDA staffing or delay risk.
+POSITIVE high: advisory committee vote in favor; FDA statement that no review issues were identified late in review; Breakthrough or priority status plus a clean, pre-specified pivotal win confirmed by FDA documents.
+POSITIVE medium: high unmet need with no approved therapy and FDA explicitly citing it; accepted label negotiations reported by independent sources; clean inspection completed.
+POSITIVE low: company statements that a trial met its endpoint, sponsor-authored publications, company launch preparation, management saying the review is on track.
+Rules: a claim whose only source is the company is at most low strength. If company and FDA disagree, record both and weight the FDA view. Never grade the same fact twice."""
 
 DISCOVER_SCHEMA = {
     "type": "object",
@@ -74,8 +84,10 @@ SIGNAL_SCHEMA = {
                     "direction": {"type": "string", "enum": list(DIRECTION)},
                     "strength": {"type": "string", "enum": list(STRENGTH)},
                     "date": {"type": "string", "description": "Date of the underlying evidence"},
+                    "source_type": {"type": "string", "enum": SOURCE_TYPES,
+                                    "description": "Who is making the claim: FDA, independent (press, analysts, journals' editorial view, other companies), or company (the sponsor's own statements, press releases, sponsor-authored papers)"},
                 },
-                "required": ["category", "finding", "direction", "strength"],
+                "required": ["category", "finding", "direction", "strength", "source_type"],
             },
         },
         "open_questions": {"type": "array", "items": {"type": "string"}},
@@ -150,6 +162,20 @@ def load_runs(kind):
     return out
 
 
+def in_window(rows, start, end):
+    keep, seen = [], set()
+    for r in rows:
+        try:
+            d = date.fromisoformat((r.get("pdufa_date") or "")[:10])
+        except ValueError:
+            continue
+        key = (r.get("drug", "").lower(), d)
+        if start <= d <= end and key not in seen:
+            seen.add(key)
+            keep.append(r)
+    return sorted(keep, key=lambda r: r["pdufa_date"])
+
+
 def logit(p):
     return math.log(p / (1 - p))
 
@@ -157,7 +183,11 @@ def logit(p):
 def score(prior, signals):
     rows, total = [], logit(prior)
     for s in signals:
-        w = DIRECTION.get(s.get("direction"), 0) * STRENGTH.get(s.get("strength"), 0)
+        strength = s.get("strength")
+        if s.get("source_type") == "company" and strength in ("medium", "high"):
+            s = {**s, "strength": "low", "capped": True}
+            strength = "low"
+        w = DIRECTION.get(s.get("direction"), 0) * STRENGTH.get(strength, 0)
         total += w
         rows.append({**s, "weight": round(w, 2)})
     return 1 / (1 + math.exp(-total)), rows
@@ -182,11 +212,15 @@ st.set_page_config(page_title="PDUFA Radar", layout="wide")
 
 _pw = os.getenv("APP_PASSWORD") or (st.secrets.get("APP_PASSWORD") if hasattr(st, "secrets") and _has_secrets() else None)
 if _pw and not st.session_state.get("authed"):
-    entered = st.text_input("Password", type="password")
-    if entered == _pw:
+    if st.query_params.get("access") == _pw:
         st.session_state["authed"] = True
-        st.rerun()
-    st.stop()
+    else:
+        entered = st.text_input("Password", type="password")
+        if entered == _pw:
+            st.session_state["authed"] = True
+            st.query_params["access"] = _pw
+            st.rerun()
+        st.stop()
 st.title("PDUFA Radar")
 st.caption(
     "For biotech investors: what the web is saying about upcoming FDA decisions, "
@@ -226,15 +260,19 @@ if live and st.button("Find upcoming PDUFA dates"):
             f"Upcoming FDA PDUFA target action dates between {today:%B %d, %Y} and {end:%B %d, %Y} for publicly traded biotech companies",
             [
                 f"PDUFA date {end:%B %Y} biotech",
+                f"PDUFA calendar {today:%B %Y}",
+                f"PDUFA calendar {end:%B %Y}",
+                "FDA extends PDUFA target action date major amendment",
                 f"FDA decision expected {today:%B %Y} NDA BLA",
                 "company announces FDA accepted application PDUFA target action date",
             ],
             "Prefer company press releases and SEC filings. Only include decisions with a stated PDUFA or target action date inside the window. One row per drug.",
             DISCOVER_SCHEMA,
             start_date=(today - timedelta(days=365)).isoformat(),
-            n=25,
+            n=40,
         )
         res["seconds"] = round(time.time() - t0, 1)
+        res["output"]["catalysts"] = in_window(res["output"].get("catalysts", []), today, end)
     save_run("discover", disc_key, res)
     st.session_state["discover"] = res
 
@@ -278,10 +316,12 @@ if target:
                     f"{target} commercial launch preparation hiring sales force",
                     f"{target} earnings call management comments FDA review on track label discussions",
                     f"{target} complete response letter same drug class precedent",
+                    f"{target} FDA briefing document advisory committee vote",
                 ],
-                "You are a biotech analyst preparing for an FDA decision. Extract only evidence-backed signals, "
-                "with the date of each. Distinguish company statements from independent reporting. "
-                "Do not invent signals; return fewer if evidence is thin.",
+                "You are a skeptical biotech analyst preparing for an FDA decision. Extract only evidence-backed signals, "
+                "with the date and source type of each. Look hardest for FDA documents: advisory committee briefing "
+                "documents and votes, CRLs, review extensions. Do not invent signals; return fewer if evidence is thin.\n\n"
+                + RUBRIC,
                 SIGNAL_SCHEMA,
                 start_date=(today - timedelta(days=540)).isoformat(),
                 n=20,
@@ -308,7 +348,7 @@ if target:
 
         st.markdown("**Signals** (each one is cited below)")
         st.dataframe(
-            [{k: r.get(k) for k in ["category", "direction", "strength", "weight", "finding", "date"]} for r in rows],
+            [{k: r.get(k) for k in ["category", "source_type", "direction", "strength", "weight", "finding", "date"]} for r in rows],
             hide_index=True,
         )
 

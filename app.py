@@ -107,10 +107,11 @@ SIGNAL_SCHEMA = {
                     "direction": {"type": "string", "enum": list(DIRECTION)},
                     "strength": {"type": "string", "enum": list(STRENGTH)},
                     "date": {"type": "string", "description": "Date of the underlying evidence"},
+                    "source_url": {"type": "string", "description": "URL of the single document that best supports this finding, taken from the search results"},
                     "source_type": {"type": "string", "enum": SOURCE_TYPES,
                                     "description": "Who is making the claim: FDA, independent (press, analysts, journals' editorial view, other companies), or company (the sponsor's own statements, press releases, sponsor-authored papers)"},
                 },
-                "required": ["category", "finding", "direction", "strength", "source_type"],
+                "required": ["category", "finding", "direction", "strength", "source_type", "source_url"],
             },
         },
         "open_questions": {"type": "array", "items": {"type": "string"}},
@@ -199,6 +200,30 @@ def in_window(rows, start, end):
             seen.add(key)
             keep.append(r)
     return sorted(keep, key=lambda r: r["pdufa_date"])
+
+
+def evidence_ranking(prior, rows, results):
+    """Leave-one-out: how many points each source moved the lean."""
+    p_all, _ = score(prior, rows)
+    titles = {r["url"]: (r.get("title") or r["url"], r.get("date", "")) for r in results}
+    by_src = {}
+    for i, r in enumerate(rows):
+        url = r.get("source_url") or "(no source given)"
+        by_src.setdefault(url, []).append(i)
+    out = []
+    for url, idx in by_src.items():
+        p_wo, _ = score(prior, [r for j, r in enumerate(rows) if j not in idx])
+        moved = round((p_all - p_wo) * 100, 1)
+        t, d = titles.get(url, (url, ""))
+        out.append({
+            "moved the lean (pts)": moved,
+            "document": t,
+            "source type": rows[idx[0]].get("source_type", ""),
+            "date": d or rows[idx[0]].get("date", ""),
+            "signals": len(idx),
+            "url": url,
+        })
+    return sorted(out, key=lambda x: -abs(x["moved the lean (pts)"]))
 
 
 def logit(p):
@@ -377,12 +402,17 @@ if target:
             hide_index=True,
         )
 
+        st.markdown("**Documents ranked by how much they moved the lean**")
+        rank = evidence_ranking(prior, out.get("signals", []), sig["results"])
+        st.dataframe(rank, hide_index=True, column_config={"url": st.column_config.LinkColumn("link")})
+        st.caption("Each row: the lean with all signals, minus the lean without that document's signals. Negative = pushed toward a rejection.")
+
         if out.get("open_questions"):
             st.markdown("**What would change the view**")
             for q in out["open_questions"]:
                 st.write(f"- {q}")
 
-        st.markdown("**Sources**")
+        st.markdown("**All sources retrieved** (search relevance order, not importance)")
         domains = {}
         for r in sig["results"]:
             d = urlparse(r["url"] or "").netloc.replace("www.", "")

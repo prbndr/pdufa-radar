@@ -11,63 +11,81 @@
         "finding": "FDA's cell and gene therapy advisory committee voted 9-3 that the evidence did not support effectiveness for DMD cardiomyopathy.",
         "direction": "negative",
         "strength": "high",
-        "date": "2026-07-29"
+        "date": "2026-07-29",
+        "source_url": "https://www.fda.gov/media/193839/download",
+        "source_type": "FDA"
       },
       {
         "category": "FDA review process",
         "finding": "FDA briefing document states HOPE-3 missed its pre-specified primary and secondary endpoints and that the statistical analysis plan was revised after unblinding without FDA agreement.",
         "direction": "negative",
         "strength": "high",
-        "date": "2026-07-29"
+        "date": "2026-07-29",
+        "source_url": "https://www.fda.gov/media/193839/download",
+        "source_type": "FDA"
       },
       {
         "category": "FDA review process",
         "finding": "FDA flagged hypersensitivity reactions in 42% of treated vs 15% of placebo patients, raising functional unblinding concerns.",
         "direction": "negative",
         "strength": "medium",
-        "date": "2026-07-29"
+        "date": "2026-07-29",
+        "source_url": "https://www.fda.gov/media/193839/download",
+        "source_type": "FDA"
       },
       {
         "category": "FDA review process",
         "finding": "January 2026 resubmission was deemed incomplete (missing clinical study report and statistical plan versions).",
         "direction": "negative",
         "strength": "medium",
-        "date": "2026-01-13"
+        "date": "2026-01-13",
+        "source_url": "https://www.fda.gov/media/193839/download",
+        "source_type": "FDA"
       },
       {
         "category": "Management language",
         "finding": "Company says HOPE-3 met its primary endpoint (54% slowing of upper-limb decline, p=0.029); this is the company's analysis and conflicts with FDA's reading.",
         "direction": "neutral",
         "strength": "low",
-        "date": "2026-08-24"
+        "date": "2026-08-24",
+        "source_url": "https://regulatorynews.com/capricor-deramiocel-pdufa-extension",
+        "source_type": "company"
       },
       {
         "category": "FDA review process",
         "finding": "CBER accepted a major amendment with 24-month open-label data for a narrower upper-limb indication and extended the goal date to Nov 22, citing significant unmet need.",
         "direction": "positive",
         "strength": "low",
-        "date": "2026-08-24"
+        "date": "2026-08-24",
+        "source_url": "https://www.capricor.com/investors/news-events/press-releases/detail/354/capricor-therapeutics-announces-extension-of-pdufa-target",
+        "source_type": "company"
       },
       {
         "category": "FDA environment",
         "finding": "Rare pediatric disease with no approved therapy for this use; FDA has shown flexibility in DMD and cited unmet need when accepting the amendment.",
         "direction": "positive",
         "strength": "medium",
-        "date": "2026-08-24"
+        "date": "2026-08-24",
+        "source_url": "https://www.cellgenetherapyreview.com/3972-News/627691-FDA-extends-PDUFA-date-for-Capricor-Duchenne-therapy/",
+        "source_type": "independent"
       },
       {
         "category": "Manufacturing / inspection",
         "finding": "The July 2025 CRL also cited unresolved chemistry, manufacturing and controls items; manufacturing moved from Cedars-Sinai to a San Diego commercial facility.",
         "direction": "negative",
         "strength": "low",
-        "date": "2025-07-09"
+        "date": "2025-07-09",
+        "source_url": "https://www.neurologylive.com/view/fda-extends-deramiocel-review-duchenne-muscular-dystrophy-after-hope-3-amend",
+        "source_type": "independent"
       },
       {
         "category": "Manufacturing / inspection",
         "finding": "FDA briefing notes no significant product differences between the two manufacturing sites based on analytical comparability data.",
         "direction": "positive",
         "strength": "low",
-        "date": "2026-07-29"
+        "date": "2026-07-29",
+        "source_url": "https://www.fda.gov/media/193839/download",
+        "source_type": "FDA"
       }
     ],
     "open_questions": [

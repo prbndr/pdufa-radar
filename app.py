@@ -221,9 +221,23 @@ def evidence_ranking(prior, rows, results, weights=None, cap_company=True):
             "source type": rows[idx[0]].get("source_type", ""),
             "date": d or rows[idx[0]].get("date", ""),
             "signals": len(idx),
-            "url": url,
+            "url": url if url.startswith("http") else None,
         })
     return sorted(out, key=lambda x: -abs(x["moved the lean (pts)"]))
+
+
+OUTLETS = {"fda.gov": "FDA", "federalregister.gov": "Federal Register", "sec.gov": "SEC", "reuters.com": "Reuters",
+           "biospace.com": "BioSpace", "fiercepharma.com": "Fierce Pharma", "fiercebiotech.com": "Fierce Biotech",
+           "biopharmadive.com": "BioPharma Dive", "statnews.com": "STAT", "endpts.com": "Endpoints",
+           "thelancet.com": "The Lancet", "clinicaltrials.gov": "ClinicalTrials.gov"}
+
+
+def outlet(url):
+    host = urlparse(url or "").netloc.replace("www.", "")
+    for k, v in OUTLETS.items():
+        if host.endswith(k):
+            return v
+    return host
 
 
 def logit(p):
@@ -434,7 +448,8 @@ if target:
 
         st.markdown("**Documents ranked by how much they moved the lean**")
         rank = evidence_ranking(prior, signals_now, sig["results"], weights, cap_company)
-        st.dataframe(rank, hide_index=True, column_config={"url": st.column_config.LinkColumn("link")})
+        st.dataframe(rank, hide_index=True,
+                     column_config={"url": st.column_config.LinkColumn("link", display_text="open")})
         st.caption("Each row: the lean with all signals, minus the lean without that document's signals. Negative = pushed toward a rejection.")
 
         if out.get("open_questions"):
@@ -442,24 +457,30 @@ if target:
             for q in out["open_questions"]:
                 st.write(f"- {q}")
 
-        st.markdown("**All sources retrieved** (search relevance order, not importance)")
-        domains = {}
-        for r in sig["results"]:
-            d = urlparse(r["url"] or "").netloc.replace("www.", "")
-            domains[d] = domains.get(d, 0) + 1
-        ctgov = domains.get("clinicaltrials.gov", 0)
-        st.caption(
-            f"{len(sig['results'])} sources across {len(domains)} domains; "
-            f"{ctgov} from ClinicalTrials.gov"
-            + (f"; {sig['seconds']}s" if sig.get("seconds") else "")
-            + (f"; ${sig['cost']:.3f}" if sig.get("cost") else "")
-        )
-        for r in sig["results"]:
-            st.markdown(f"- [{r['title'] or r['url']}]({r['url']}) {r['date']}  \n  _{(r['highlight'] or '')[:220]}_")
-
-        if sig.get("grounding"):
-            with st.expander("Field-level citations from Exa"):
-                st.json(sig["grounding"])
+        cited = {r.get("source_url") for r in signals_now if r.get("source_url")}
+        domains = {urlparse(r["url"] or "").netloc.replace("www.", "") for r in sig["results"]}
+        ctgov = sum(1 for r in sig["results"] if "clinicaltrials.gov" in (r["url"] or ""))
+        meta = f"{len(sig['results'])} sources from {len(domains)} sites, {ctgov} from ClinicalTrials.gov"
+        if sig.get("seconds"):
+            meta += f", {sig['seconds']}s"
+        if sig.get("cost"):
+            meta += f", ${sig['cost']:.3f}"
+        with st.expander(f"All sources ({meta})"):
+            table = [{
+                "cited": "yes" if r["url"] in cited else "",
+                "date": r["date"],
+                "outlet": outlet(r["url"]),
+                "title": (r["title"] or r["url"])[:110],
+                "link": r["url"],
+            } for r in sig["results"]]
+            table.sort(key=lambda x: x["date"], reverse=True)
+            table.sort(key=lambda x: x["cited"] != "yes")
+            st.dataframe(table, hide_index=True,
+                         column_config={"link": st.column_config.LinkColumn("link", display_text="open")})
+            st.caption("Cited = used as the source for at least one signal above. Newest first within each group.")
+            if sig.get("grounding"):
+                st.markdown("Raw field-level citations from Exa")
+                st.json(sig["grounding"], expanded=False)
 
         st.subheader("3. Check against the crowd")
         st.caption("Prediction markets and forecasters on the same decision. Thin markets can be stale; contracts resolve on a date, so a delay counts as NO.")

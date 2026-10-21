@@ -38,6 +38,29 @@ CATEGORIES = [
 STRENGTH = {"low": 0.15, "medium": 0.35, "high": 0.7}
 DIRECTION = {"positive": 1, "negative": -1, "neutral": 0}
 SOURCE_TYPES = ["FDA", "independent", "company"]
+MARKET_DOMAINS = ["kalshi.com", "polymarket.com", "nextconsensus.com", "manifold.markets", "metaculus.com"]
+
+MARKET_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "markets": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "venue": {"type": "string", "description": "Kalshi, Polymarket, NextConsensus, Manifold, Metaculus"},
+                    "question": {"type": "string"},
+                    "probability": {"type": "number", "description": "Implied probability of YES, 0 to 1"},
+                    "deadline": {"type": "string", "description": "Resolve-by date in the contract"},
+                    "volume": {"type": "string"},
+                    "url": {"type": "string"},
+                },
+                "required": ["venue", "question", "probability", "url"],
+            },
+        }
+    },
+    "required": ["markets"],
+}
 
 RUBRIC = """Grade each signal with this rubric. Regulators decide, so FDA evidence outweighs company claims.
 NEGATIVE high: advisory committee vote against approval or efficacy; FDA briefing document or review finding that endpoints were missed, analyses were post hoc, or the statistical plan changed after unblinding; a refuse-to-file or a Complete Response Letter on this application within the last 12 months for efficacy reasons.
@@ -108,7 +131,7 @@ def exa_deep_safe(*args, **kwargs):
     st.stop()
 
 
-def exa_deep(api_key, query, extra_queries, system_prompt, schema, start_date=None, n=15):
+def exa_deep(api_key, query, extra_queries, system_prompt, schema, start_date=None, n=15, include_domains=None):
     body = {
         "query": query,
         "additionalQueries": extra_queries,
@@ -120,6 +143,8 @@ def exa_deep(api_key, query, extra_queries, system_prompt, schema, start_date=No
     }
     if start_date:
         body["startPublishedDate"] = start_date
+    if include_domains:
+        body["includeDomains"] = include_domains
     r = requests.post(
         EXA_URL,
         headers={"x-api-key": api_key, "Content-Type": "application/json"},
@@ -375,3 +400,37 @@ if target:
         if sig.get("grounding"):
             with st.expander("Field-level citations from Exa"):
                 st.json(sig["grounding"])
+
+        st.subheader("3. Check against the crowd")
+        st.caption("Prediction markets and forecasters on the same decision. Thin markets can be stale; contracts resolve on a date, so a delay counts as NO.")
+        if live and st.button("Find prediction markets"):
+            with st.spinner("Exa deep search across Kalshi, Polymarket and forecasting sites..."):
+                mk = exa_deep_safe(
+                    api_key,
+                    f"Prediction market or forecast on whether the FDA approves {target}",
+                    [f"{target} FDA approval odds", f"Will the FDA approve {target.split(' (')[0]}"],
+                    "Return only markets or forecasts about this specific drug's FDA approval. Read the current YES price as a probability from 0 to 1. Skip markets on other drugs.",
+                    MARKET_SCHEMA,
+                    n=10,
+                    include_domains=MARKET_DOMAINS,
+                )
+            save_run("markets", sig_key, mk)
+            st.session_state["markets"] = {"key": sig_key, **mk}
+        if not live:
+            saved_mk = load_runs("markets")
+            safe = "".join(c if c.isalnum() else "_" for c in sig_key)[:60]
+            if safe in saved_mk:
+                st.session_state["markets"] = {"key": sig_key, **saved_mk[safe]}
+        mk = st.session_state.get("markets")
+        if mk and mk.get("key") == sig_key:
+            rows = mk["output"].get("markets", [])
+            if rows:
+                for r in rows:
+                    try:
+                        r["gap vs lean (pts)"] = round((p - float(r["probability"])) * 100)
+                    except (TypeError, ValueError):
+                        pass
+                st.dataframe(rows, hide_index=True)
+                st.caption("A big gap is the interesting part: either the market is missing evidence, or the scan is.")
+            else:
+                st.info("No prediction market or public forecast found for this decision.")

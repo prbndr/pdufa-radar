@@ -1,0 +1,18 @@
+{
+  "seeded_example": true,
+  "cost": null,
+  "grounding": [],
+  "results": [],
+  "output": {
+    "markets": [
+      {
+        "venue": "NextConsensus",
+        "question": "Deramiocel, Duchenne: FDA approval by goal date (registered forecast)",
+        "probability": 0.35,
+        "deadline": "2026-11-22",
+        "volume": "n/a (forecast registry)",
+        "url": "https://nextconsensus.com/pdufa-calendar/"
+      }
+    ]
+  }
+}

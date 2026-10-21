@@ -202,9 +202,9 @@ def in_window(rows, start, end):
     return sorted(keep, key=lambda r: r["pdufa_date"])
 
 
-def evidence_ranking(prior, rows, results):
+def evidence_ranking(prior, rows, results, weights=None, cap_company=True):
     """Leave-one-out: how many points each source moved the lean."""
-    p_all, _ = score(prior, rows)
+    p_all, _ = score(prior, rows, weights, cap_company)
     titles = {r["url"]: (r.get("title") or r["url"], r.get("date", "")) for r in results}
     by_src = {}
     for i, r in enumerate(rows):
@@ -212,7 +212,7 @@ def evidence_ranking(prior, rows, results):
         by_src.setdefault(url, []).append(i)
     out = []
     for url, idx in by_src.items():
-        p_wo, _ = score(prior, [r for j, r in enumerate(rows) if j not in idx])
+        p_wo, _ = score(prior, [r for j, r in enumerate(rows) if j not in idx], weights, cap_company)
         moved = round((p_all - p_wo) * 100, 1)
         t, d = titles.get(url, (url, ""))
         out.append({
@@ -230,14 +230,15 @@ def logit(p):
     return math.log(p / (1 - p))
 
 
-def score(prior, signals):
+def score(prior, signals, weights=None, cap_company=True):
+    weights = weights or STRENGTH
     rows, total = [], logit(prior)
     for s in signals:
         strength = s.get("strength")
-        if s.get("source_type") == "company" and strength in ("medium", "high"):
+        if cap_company and s.get("source_type") == "company" and strength in ("medium", "high"):
             s = {**s, "strength": "low", "capped": True}
             strength = "low"
-        w = DIRECTION.get(s.get("direction"), 0) * STRENGTH.get(strength, 0)
+        w = DIRECTION.get(s.get("direction"), 0) * weights.get(strength, 0)
         total += w
         rows.append({**s, "weight": round(w, 2)})
     return 1 / (1 + math.exp(-total)), rows
@@ -289,7 +290,14 @@ with st.sidebar:
         "Your prior probability of approval", 0.30, 0.95, 0.75, 0.01,
         help="Set your own base rate. Signals shift this in log-odds; the result is a screening lean, not a calibrated forecast.",
     )
-    st.caption("Signal weights (log-odds): low 0.15, medium 0.35, high 0.70")
+    st.markdown("**Model parameters**")
+    weights = {
+        "low": st.slider("Low-strength signal weight", 0.0, 1.5, STRENGTH["low"], 0.05),
+        "medium": st.slider("Medium-strength signal weight", 0.0, 1.5, STRENGTH["medium"], 0.05),
+        "high": st.slider("High-strength signal weight", 0.0, 1.5, STRENGTH["high"], 0.05),
+    }
+    cap_company = st.toggle("Cap company-only claims at low", value=True)
+    st.caption("Weights are in log-odds. 0.7 roughly halves the odds (negative) or doubles them (positive).")
 
 live = mode.startswith("Live") and bool(api_key)
 
@@ -389,21 +397,43 @@ if target:
     sig = st.session_state.get("signals")
     if sig:
         out = sig["output"]
-        p, rows = score(prior, out.get("signals", []))
-        c1, c2, c3 = st.columns([1, 1, 2])
-        c1.metric("Prior", f"{prior:.0%}")
-        c2.metric("Lean after signals", f"{p:.0%}", f"{(p - prior) * 100:+.0f} pts")
-        c3.write(out.get("summary", ""))
-        st.caption("Screening lean from your prior plus evidence-weighted signals. Edit weights or the prior to test your view.")
-
-        st.markdown("**Signals** (each one is cited below)")
-        st.dataframe(
-            [{k: r.get(k) for k in ["category", "source_type", "direction", "strength", "weight", "finding", "date"]} for r in rows],
-            hide_index=True,
+        top = st.container()
+        st.markdown("**Signals** (edit direction or strength to test your own read; each is cited)")
+        base = [{k: r.get(k) for k in ["category", "source_type", "direction", "strength", "finding", "date", "source_url"]}
+                for r in out.get("signals", [])]
+        edited = st.data_editor(
+            base, hide_index=True, key=f"edit_{sig_key}",
+            disabled=["category", "source_type", "finding", "date", "source_url"],
+            column_config={
+                "direction": st.column_config.SelectboxColumn("direction", options=list(DIRECTION)),
+                "strength": st.column_config.SelectboxColumn("strength", options=list(STRENGTH)),
+                "source_url": st.column_config.LinkColumn("source"),
+            },
         )
+        signals_now = list(edited) if isinstance(edited, list) else edited.to_dict("records")
+        p, rows = score(prior, signals_now, weights, cap_company)
+        with top:
+            c1, c2, c3 = st.columns([1, 1, 2])
+            c1.metric("Prior", f"{prior:.0%}")
+            c2.metric("Lean after signals", f"{p:.0%}", f"{(p - prior) * 100:+.0f} pts")
+            c3.write(out.get("summary", ""))
+            st.caption("Screening lean from your prior plus evidence-weighted signals. Change the parameters in the sidebar or edit a signal below.")
+
+        with st.expander("How the lean is calculated"):
+            terms = " ".join(f"{r['weight']:+.2f}" for r in rows) or "0"
+            st.latex(r"\text{logit}(p) = \text{logit}(\text{prior}) + \sum_i d_i \cdot w_{s_i}")
+            st.markdown(
+                f"- Prior **{prior:.0%}** gives a starting log-odds of **{logit(prior):+.2f}**.\n"
+                f"- Each signal adds direction (+1, 0, -1) times its strength weight: low **{weights['low']}**, medium **{weights['medium']}**, high **{weights['high']}**.\n"
+                f"- Company-only claims capped at low: **{'on' if cap_company else 'off'}**.\n"
+                f"- This scan adds: {terms}\n"
+                f"- Final log-odds **{logit(prior) + sum(r['weight'] for r in rows):+.2f}**, which is **{p:.0%}**."
+            )
+            st.markdown("**Grading rubric Exa is given**")
+            st.code(RUBRIC, language=None)
 
         st.markdown("**Documents ranked by how much they moved the lean**")
-        rank = evidence_ranking(prior, out.get("signals", []), sig["results"])
+        rank = evidence_ranking(prior, signals_now, sig["results"], weights, cap_company)
         st.dataframe(rank, hide_index=True, column_config={"url": st.column_config.LinkColumn("link")})
         st.caption("Each row: the lean with all signals, minus the lean without that document's signals. Negative = pushed toward a rejection.")
 
